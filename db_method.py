@@ -1,11 +1,16 @@
+# -*- coding:utf-8 -*-
+
 from sqlalchemy import Column, String, create_engine, INTEGER, DATETIME, INTEGER, VARCHAR, TEXT
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 import datetime
 from sqlalchemy import func
 from sqlalchemy.orm import scoped_session
+import sys
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
-sql_url = "mysql://root:@localhost:3306/crawler" 
+sql_url = "mysql://root:@localhost:3306/crawler?charset=utf8" 
 before_parse = 0
 after_parse = 1
 
@@ -19,29 +24,42 @@ class Url(Base):
     depth = Column(INTEGER)
     title = Column(TEXT)
     done = Column(INTEGER)#0:not done 1:done
+    isHomePage = Column(INTEGER)#0:not 1:yes
 
 class Db_Method(object):
     def __init__(self):
         engine = create_engine(sql_url)
         DBSession = sessionmaker(bind=engine)
-        #self.session = DBSession()
         self.session = scoped_session(DBSession)
 
-    def insert_url(self, url="", content="", depth=0, title=""):
+    def insert_url(self, url="", content="",
+                    depth=0, title="",
+                    isHomePage=0):
         now = datetime.datetime.utcnow()
         url = Url(url=url,
                 content=content,
                 depth=depth,
                 title=title,
                 createAt=now,
-                done=before_parse)
+                done=before_parse,
+                isHomePage=isHomePage)
         self.session.add(url)
         self.session.commit()
         return url.id
 
-    def update_url(self, id, url="", content="", title=""):
+    def get_depth_by_id(self, id):
+        sql = self.session.query(Url).\
+                        filter(Url.id==id)
+        result = self.session.execute(sql)
+        if result:
+            for item in result:
+                depth = item["url_depth"]
+                return depth
+        return 0
+
+    def update_url(self, id, content="", title=""):
         now = datetime.datetime.utcnow()
-        values = { 'url': url,
+        values = { 
                 'content': content,
                 'title': title,
                 'createAt': now,

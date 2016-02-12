@@ -1,3 +1,6 @@
+# -*- coding:utf-8 -*-
+
+import requests
 import random
 import threading
 from time import ctime, sleep
@@ -12,7 +15,16 @@ class Crawler(threading.Thread):
         self.pool = pool
 
     def openUrl(self, url):
-        pass
+        id = url[0]
+        link = url[1]
+        try:
+            r = requests.get(link)
+            if hasattr(self.pool, "handle_response"):
+                self.pool.handle_response(url, r)
+        except:
+            pass
+        finally:
+            pass
 
     def stop(self):
         self.isOpen = False
@@ -20,10 +32,11 @@ class Crawler(threading.Thread):
     def run(self):
         while self.isOpen:
             url, depth = self.pool.get_url()
-            if not url:
+            if not url[1]:
                 print 'waiting for url'
                 sleep(LOOP_TIMEOUT)
                 continue
+            self.openUrl(url)
             sleep(2*(random.random()))
             print str(self.id) + " run:" + str(url[1]) + " depth:" +  str(depth)
         print "stop crawler " + str(self.id)
