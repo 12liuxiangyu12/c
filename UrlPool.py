@@ -20,6 +20,8 @@ class UrlPool(object):
 
     def insert_url(self, url, depth):
         u = urlparse.urlparse(url)
+        if not u.netloc:
+            return
         isHomePage = 0
         if not u.path and not u.query:
             isHomePage = 1
@@ -28,7 +30,7 @@ class UrlPool(object):
                 isHomePage=isHomePage)
         homepage = self.get_home_page_url(url)
         if not self.db_method.is_url_exist(homepage):
-            self.insert_url(self.get_home_page_url(homepage), depth+1)
+            self.insert_url(self.get_home_page_url(homepage), depth)
 
     def get_home_page_url(self, url):
         u = urlparse.urlparse(url)
