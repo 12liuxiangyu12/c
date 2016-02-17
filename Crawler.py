@@ -21,8 +21,9 @@ class Crawler(threading.Thread):
             r = requests.get(link)
             if hasattr(self.pool, "handle_response"):
                 self.pool.handle_response(url, r)
-        except:
-            pass
+        except Exception, e:
+            print e
+            self.pool.db_method.update_url(id)
         finally:
             pass
 
